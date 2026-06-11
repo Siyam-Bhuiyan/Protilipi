@@ -8,10 +8,10 @@
   font-weight: bold;
   font-size: 36px;
   background: linear-gradient(
-    90deg, 
-    #fa4343 0%, 
-    #fb889b 33%, 
-    #2ec479 66%, 
+    90deg,
+    #fa4343 0%,
+    #fb889b 33%,
+    #2ec479 66%,
     #fa4343 100%
   ); /* Smooth stops for colors */
   -webkit-background-clip: text;
@@ -29,11 +29,21 @@
   }
 }
 
-
 .links {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.link:hover {
+  color: #53c28b;
 }
 
 .logout {
