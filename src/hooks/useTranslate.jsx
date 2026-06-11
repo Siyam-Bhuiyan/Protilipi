@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const useTranslate = (sourceText, selectedLanguage) => {
   const [targetText, setTargetText] = useState("");
@@ -17,29 +16,16 @@ const useTranslate = (sourceText, selectedLanguage) => {
       setError(null);
 
       try {
-        const genAI = new GoogleGenerativeAI(
-          "AIzaSyBQ-KCx7JC2ksgGCEIKosnfDNqzl6qgf2w" // Ensure the API key is valid
-        );
+        const res = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: sourceText, targetLanguage: selectedLanguage }),
+        });
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        if (!res.ok) throw new Error("Translation request failed");
 
-        const prompt = `You will be provided with a sentence. This sentence: 
-        ${sourceText}. Your tasks are to:
-        - Detect what language the sentence is in
-        - Translate the sentence into ${selectedLanguage}.
-        Return only the translated sentence.`;
-
-        const result = await model.generateContent(prompt);
-
-        if (!result || !result.response) {
-          throw new Error("Invalid response from Google Generative AI");
-        }
-
-        const response = result.response;
-        const translatedText = response.text();
-
-        console.log("Translated text:", translatedText);
-        setTargetText(translatedText);
+        const data = await res.json();
+        setTargetText(data.translated);
       } catch (err) {
         console.error("Error translating text:", err);
         setError("Translation failed. Please try again.");
@@ -49,10 +35,7 @@ const useTranslate = (sourceText, selectedLanguage) => {
       }
     };
 
-    const timeoutId = setTimeout(() => {
-      handleTranslate();
-    }, 500); // Debounce to prevent excessive API calls
-
+    const timeoutId = setTimeout(handleTranslate, 500);
     return () => clearTimeout(timeoutId);
   }, [sourceText, selectedLanguage]);
 

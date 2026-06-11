@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
 import styles from './page.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMicrophone } from '@fortawesome/free-solid-svg-icons';
@@ -21,32 +20,10 @@ export default function VoiceChatbot() {
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'bn-BD';
 
-      recognitionRef.current.onresult = async (event) => {
+      recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
-
-        // Detect language
-        try {
-          const langResponse = await axios({
-            url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyCgyhYId0cuciUwpt_VL8yQVgrj9NKDVho`,
-            method: "post",
-            data: {
-              contents: [{
-                parts: [{
-                  text: `Detect the language of this text. Respond with ONLY 'Bangla' or 'English': ${transcript}`
-                }]
-              }],
-            },
-          });
-
-          const detectedLang = langResponse.data.candidates[0].content.parts[0].text.trim();
-
-          setQuestion(transcript);
-          setIsListening(false);
-        } catch (error) {
-          console.error('Language detection error:', error);
-          setQuestion(transcript);
-          setIsListening(false);
-        }
+        setQuestion(transcript);
+        setIsListening(false);
       };
 
       recognitionRef.current.onerror = (event) => {
@@ -82,27 +59,16 @@ export default function VoiceChatbot() {
     setChatHistory(prev => [...prev, { type: 'question', content: currentQuestion }]);
 
     try {
-      const response = await axios({
-        url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyCgyhYId0cuciUwpt_VL8yQVgrj9NKDVho`,
-        method: "post",
-        data: {
-          contents: [{
-            parts: [{
-              text: `you are (একুশে AI) chatbot who can understand and respond to user queries in both Bangla and Banglish. 
-          The chatbot should be capable of detecting the language or code-switching in user input and provide responses entirely in Bangla.
-          It should effectively handle mixed Banglish sentences where users may combine Bangla and English in their queries.
-          The system should support a variety of common conversational contexts such as greetings, FAQs, and simple commands.
-          If the input is in Bangla or Banglish, respond in Bangla. 
-          If the input is entirely in English, still respond entirely in Bangla.
-
-          User query: ${currentQuestion}`
-            }]
-          }],
-        },
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: currentQuestion }),
       });
 
-      const aiResponse = response.data.candidates[0].content.parts[0].text;
-      setChatHistory(prev => [...prev, { type: 'answer', content: aiResponse }]);
+      if (!res.ok) throw new Error('Request failed');
+
+      const data = await res.json();
+      setChatHistory(prev => [...prev, { type: 'answer', content: data.response }]);
     } catch (error) {
       console.error(error);
       setChatHistory(prev => [...prev, {
@@ -110,6 +76,7 @@ export default function VoiceChatbot() {
         content: "দুঃখিত, কিছু সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন!"
       }]);
     }
+
     setGeneratingAnswer(false);
   }
 
@@ -122,10 +89,7 @@ export default function VoiceChatbot() {
             <p>আপনার কথোপকথন সঙ্গী</p>
           </div>
 
-          <div
-            ref={chatContainerRef}
-            className={styles.chatContainer}
-          >
+          <div ref={chatContainerRef} className={styles.chatContainer}>
             {chatHistory.map((chat, index) => (
               <div
                 key={index}
