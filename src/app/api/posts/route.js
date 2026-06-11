@@ -7,10 +7,15 @@ export const GET = async (request) => {
 
   const username = url.searchParams.get("username");
 
+  // Don't query if session hasn't loaded yet
+  if (!username || username === "undefined") {
+    return new NextResponse(JSON.stringify([]), { status: 200 });
+  }
+
   try {
     await connect();
 
-    const posts = await Post.find(username && { username });
+    const posts = await Post.find({ username });
 
     return new NextResponse(JSON.stringify(posts), { status: 200 });
   } catch (err) {

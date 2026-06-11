@@ -8,7 +8,7 @@
 
 These are issues that exist right now and make the project look unfinished. Fix these before building anything new.
 
-### 1.1 Move API Keys Server-Side (Security — Day 1)
+### done 1.1 Move API Keys Server-Side (Security — Day 1)
 **Problem:** The Gemini API key is hardcoded directly in `src/app/EkusheAI/page.jsx:86` — it is visible to anyone who opens DevTools. Any person can steal it and use your free quota.
 
 **Fix:**
@@ -21,7 +21,7 @@ These are issues that exist right now and make the project look unfinished. Fix 
 
 ---
 
-### 1.2 Fix the Collaborative Editor Race Condition (Correctness)
+### done 1.2 Fix the Collaborative Editor Race Condition (Correctness)
 **Problem:** The current WebSocket sync in `আলাপন` sends the full delta on every keystroke. If User A and User B type at the same time, one delta overwrites the other. Under concurrent use the document corrupts.
 
 **Fix:** Replace the manual delta sync with **Yjs** — a CRDT (Conflict-free Replicated Data Type) library. This is what Notion and Figma use internally. It mathematically guarantees that all users converge to the same document regardless of network order.

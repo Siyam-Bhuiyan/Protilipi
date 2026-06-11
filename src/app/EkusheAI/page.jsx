@@ -21,15 +21,11 @@ export default function VoiceChatbot() {
       recognitionRef.current.lang = 'bn-BD';
 
       recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setQuestion(transcript);
+        setQuestion(event.results[0][0].transcript);
         setIsListening(false);
       };
 
-      recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-      };
+      recognitionRef.current.onerror = () => setIsListening(false);
     }
   }, []);
 
@@ -68,12 +64,16 @@ export default function VoiceChatbot() {
       if (!res.ok) throw new Error('Request failed');
 
       const data = await res.json();
-      setChatHistory(prev => [...prev, { type: 'answer', content: data.response }]);
+      setChatHistory(prev => [
+        ...prev,
+        { type: 'answer', content: data.response, sources: data.sources ?? [] },
+      ]);
     } catch (error) {
       console.error(error);
       setChatHistory(prev => [...prev, {
         type: 'answer',
-        content: "দুঃখিত, কিছু সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন!"
+        content: "দুঃখিত, কিছু সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন!",
+        sources: [],
       }]);
     }
 
@@ -96,7 +96,26 @@ export default function VoiceChatbot() {
                 className={`${styles.chatMessage} ${chat.type === 'question' ? styles.questionMessage : styles.answerMessage}`}
               >
                 <div className={styles.messageContent}>
-                  {chat.content}
+                  <p className={styles.messageText}>{chat.content}</p>
+
+                  {chat.type === 'answer' && chat.sources?.length > 0 && (
+                    <div className={styles.sources}>
+                      <span className={styles.sourcesLabel}>তথ্যসূত্র:</span>
+                      <div className={styles.sourceChips}>
+                        {chat.sources.map((src) => (
+                          <a
+                            key={src}
+                            href={`https://bn.wikipedia.org/wiki/${encodeURIComponent(src)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.sourceChip}
+                          >
+                            {src}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

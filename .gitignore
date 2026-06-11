@@ -32,4 +32,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# ingestion checkpoint (auto-generated, do not commit)
+scripts/checkpoint.json
+
+# ChromaDB local data
+chromadb_data/
+
 
